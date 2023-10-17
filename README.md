@@ -22,9 +22,10 @@ react +antd
 
 # 使用方法
 
-`npm install
+``npm install
 
-npm run dev`
+npm run dev``
+
 浏览器访问 127.0.0.1:对应端口即可
 
 # ui 效果
@@ -39,8 +40,10 @@ npm run dev`
 # 参考的项目：
 
 https://github.com/javaLuo/react-admin/
+
 https://isluo.com/work/admin/
 
 cool-admin:
 https://cool-js.com/
+
 https://github.com/cool-team-official
