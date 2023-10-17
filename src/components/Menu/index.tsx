@@ -1,0 +1,71 @@
+import { useState, useMemo } from "react";
+import { Layout, Menu as MenuAntd } from "antd";
+import { Link, useHistory } from "kl_router";
+import { cloneDeep } from "lodash";
+const { Sider } = Layout;
+import "./index.less";
+import ImgLogo from "@/assets/logo.png";
+import type { ItemType, MenuItemType } from "antd/lib/menu/hooks/useItems";
+import { Menu } from "@/entity/menu";
+import { System_Name } from "@/config";
+import { GetTreeNode, TreeNodeType } from "@/util/tools";
+import Icon from "@/components/Icon";
+interface Props {
+  data: Menu[]; // 所有的菜单数据
+  collapsed: boolean; // 菜单咱开还是收起
+}
+type MenuTreeNodeType = MenuItemType & TreeNodeType<Menu>;
+export default function MenuCom(props: Props): JSX.Element {
+  const location = useHistory();
+  const [chosedKey, setChosedKey] = useState<string[]>([]); // 当前选中
+  const [openKeys, setOpenKeys] = useState<string[]>([]); // 当前需要被展开的项
+
+  // 当页面路由跳转时，即location发生改变，则更新选中项
+  // useEffect(() => {
+  //   console.log("chosekeys:", chosedKey, "openkeys:", openKeys);
+  // }, [location]);
+
+  const menutree_info = useMemo(() => {
+    const menulist = cloneDeep(props.data);
+    menulist.sort((a, b) => {
+      return a.sorts - b.sorts;
+    });
+    return GetTreeNode(menulist);
+  }, [props.data]);
+  /** 处理原始数据，将原始数据处理为层级关系 **/
+  const treeDom: ItemType[] = useMemo(() => {
+    console.log("treeinfo", menutree_info);
+    menutree_info.datalist.forEach((item) => {
+      (item as MenuTreeNodeType).label = item.title;
+      (item as MenuTreeNodeType).icon = <Icon type={item.data.icon}></Icon>;
+    });
+    console.log("menu list", menutree_info.trees);
+    return menutree_info.trees;
+  }, [menutree_info]);
+
+  return (
+    <Sider width={256} className="sider" trigger={null} collapsible collapsed={props.collapsed}>
+      <div className={props.collapsed ? "menuLogo hide" : "menuLogo"}>
+        <Link to="/">
+          <img src={ImgLogo} />
+          <div>{System_Name}</div>
+        </Link>
+      </div>
+      <MenuAntd
+        theme="dark"
+        mode="inline"
+        items={treeDom}
+        selectedKeys={chosedKey}
+        {...(props.collapsed ? {} : { openKeys })}
+        onOpenChange={(keys: string[]) => setOpenKeys(keys)}
+        onSelect={(e) => {
+          const menuinfo = menutree_info.datamap.get(e.key);
+          if (menuinfo) {
+            location.push(menuinfo.data.url);
+            setChosedKey([menuinfo.key]);
+          }
+        }}
+      />
+    </Sider>
+  );
+}
